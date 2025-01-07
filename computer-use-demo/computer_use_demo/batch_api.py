@@ -9,6 +9,9 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Optional
 
+from anthropic.types.beta import (
+    BetaMessageParam,
+)
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -228,8 +231,8 @@ async def run_task(task_id: str, prompt: str, provider: APIProvider, model: str,
 
         messages = [
             BetaMessageParam(
-                "role"="user",
-                "content"=[{"type": "text", "text": prompt}]
+                role="user",
+                content=[{"type": "text", "text": prompt}]
             )
         ]
 
