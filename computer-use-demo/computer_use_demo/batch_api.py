@@ -12,13 +12,15 @@ from typing import Optional
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from starlette.middleware.base import \
-    BaseHTTPMiddleware  # Changed from fastapi.middleware.base
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request  # Add this for type hints
 from starlette.responses import Response  # Add this for type hints
 
-from computer_use_demo.loop import (PROVIDER_TO_DEFAULT_MODEL_NAME,
-                                    APIProvider, sampling_loop)
+from computer_use_demo.loop import (
+    PROVIDER_TO_DEFAULT_MODEL_NAME,
+    APIProvider,
+    sampling_loop,
+)
 
 # Global task processing lock
 task_lock = asyncio.Lock()
