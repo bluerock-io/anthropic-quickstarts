@@ -6,7 +6,7 @@ import platform
 from collections.abc import Callable
 from datetime import datetime
 from enum import StrEnum
-from typing import Any, cast
+from typing import Any, Optional, cast
 
 import httpx
 from anthropic import (
@@ -81,7 +81,7 @@ async def sampling_loop(
     api_response_callback: Callable[
         [httpx.Request, httpx.Response | object | None, Exception | None], None
     ],
-    api_key: str,
+    api_key: Optional[str] = None,
     only_n_most_recent_images: int | None = None,
     max_tokens: int = 4096,
 ):
