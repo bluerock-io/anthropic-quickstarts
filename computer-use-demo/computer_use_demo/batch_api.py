@@ -228,8 +228,8 @@ async def run_task(task_id: str, prompt: str, provider: APIProvider, model: str,
 
         messages = [
             BetaMessageParam(
-                "role": "user",
-                "content": [{"type": "text", "text": prompt}]
+                "role"="user",
+                "content"=[{"type": "text", "text": prompt}]
             )
         ]
 
