@@ -226,10 +226,12 @@ async def run_task(task_id: str, prompt: str, provider: APIProvider, model: str,
 
         tasks[task_id]["status"] = "running"
 
-        messages = [{
-            "role": "user",
-            "content": [{"type": "text", "text": prompt}]
-        }]
+        messages = [
+            BetaMessageParam(
+                "role": "user",
+                "content": [{"type": "text", "text": prompt}]
+            )
+        ]
 
         def output_callback(content):
             logger.debug(f"Task {task_id}: Received assistant output")
