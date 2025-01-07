@@ -1,19 +1,22 @@
-from fastapi import FastAPI, BackgroundTasks, HTTPException
-from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware  # Changed from fastapi.middleware.base
-from starlette.requests import Request  # Add this for type hints
-from starlette.responses import Response  # Add this for type hints
-from pydantic import BaseModel
+from computer_use_demo.loop import (PROVIDER_TO_DEFAULT_MODEL_NAME,
+                                    APIProvider, sampling_loop)
 import asyncio
-import uuid
-import logging
 import json
-from typing import Dict, Optional
-from datetime import datetime
+import logging
 import os
 import sys
-from contextlib import asynccontextmanager
 import time
+import uuid
+from contextlib import asynccontextmanager
+from datetime import datetime
+
+from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from starlette.middleware.base import \
+    BaseHTTPMiddleware  # Changed from fastapi.middleware.base
+from starlette.requests import Request  # Add this for type hints
+from starlette.responses import Response  # Add this for type hints
 
 # Global task processing lock
 task_lock = asyncio.Lock()
@@ -135,11 +138,6 @@ async def reset_desktop_environment():
             duration = time.time() - start_time
             logger.info(f"Desktop environment reset completed in {duration:.2f} seconds")
 
-from computer_use_demo.loop import (
-    sampling_loop, 
-    APIProvider, 
-    PROVIDER_TO_DEFAULT_MODEL_NAME
-)
 
 # Configure logging
 logging.basicConfig(
@@ -161,12 +159,12 @@ class TimeoutMiddleware(BaseHTTPMiddleware):
                     call_next(request),
                     timeout=MAX_TIMEOUT_SECONDS
                 )
-            except asyncio.TimeoutError:
+            except asyncio.TimeoutError as e:
                 logger.error(f"Request timed out after {MAX_TIMEOUT_SECONDS} seconds")
                 raise HTTPException(
                     status_code=504,
                     detail=f"Request timed out after {MAX_TIMEOUT_SECONDS} seconds"
-                )
+                ) from e
         return await call_next(request)
 
 # Add the middleware to the app
@@ -211,7 +209,7 @@ class TaskStatus(BaseModel):
     error: Optional[str] = None
 
 # Store for tasks (only used in non-Cloud Run environment)
-tasks: Dict[str, dict] = {}
+tasks: dict[str, dict] = {}
 
 async def run_task(task_id: str, prompt: str, provider: APIProvider, model: str, system_prompt_suffix: str):
     if task_id not in tasks:
@@ -305,7 +303,7 @@ async def create_task(task_req: TaskRequest, background_tasks: BackgroundTasks):
     tasks[task_id] = task_data
 
     if IS_CLOUD_RUN:
-        logger.info(f"Running in Cloud Run environment - executing task synchronously")
+        logger.info("Running in Cloud Run environment - executing task synchronously")
         try:
             # Reset desktop environment before starting new task
             await reset_desktop_environment()
@@ -342,7 +340,7 @@ async def create_task(task_req: TaskRequest, background_tasks: BackgroundTasks):
     else:
         try:
             # In non-Cloud Run environment, we can run asynchronously
-            logger.info(f"Running in non-Cloud Run environment - executing task asynchronously")
+            logger.info("Running in non-Cloud Run environment - executing task asynchronously")
             background_tasks.add_task(
                 run_task,
                 task_id,
